@@ -1,13 +1,17 @@
-import { Router } from "express";
+import { Router } from "express"
 
-//#region controllers
-import AuthTokenController from "../controllers/auth-token.js";
+//#region validators
+import validateLoginDTO from "../validators/validate-login.dto.js"
 //#endregion
 
-const router = Router();
+//#region controllers
+import AuthTokenController from "../controllers/auth-token.js"
+//#endregion
 
-router.post("/login", AuthTokenController.login);
+const router = Router()
 
-router.get("/profile", AuthTokenController.getProfile);
+router.post("/login", validateLoginDTO, AuthTokenController.login)
 
-export default router;
+router.get("/profile", AuthTokenController.getProfile)
+
+export default router
