@@ -1,4 +1,5 @@
 import { USERS_BBDD } from "../../bd.js";
+import userModel from "../../schemas/user-schema.js";
 
 class UsersController {
   /**
@@ -7,19 +8,18 @@ class UsersController {
    * @param {import("express").Response} res express response object
    * @returns {object} userInfo | Not found
    */
-  static get(req, res) {
+  static async get(req, res) {
     const { guid } = req.params;
-    const userFound = USERS_BBDD.find((user) => user.guid === guid);
+
+    const userFound = await userModel.findById(guid).exec();
+    // const userFound = USERS_BBDD.find((user) => user.guid === guid);
 
     if (!userFound)
       return res.status(404).json({
         message: "Not Found",
       });
 
-    res.status(200).json({
-      id: guid,
-      info: userFound,
-    });
+    res.status(200).json(userFound);
   }
 
   /**
@@ -28,12 +28,12 @@ class UsersController {
    * @param {import("express").Response} res express response object
    * @returns {object} success message | Not found
    */
-  static save(req, res) {
+  static async save(req, res) {
     const { guid, name } = req.body;
 
     if (!guid || !name) return res.status(400).send();
 
-    const userFound = USERS_BBDD.find((user) => user.guid === guid);
+    const userFound = await userModel.findById(guid).exec();
 
     if (userFound)
       return res.status(409).json({
@@ -41,12 +41,12 @@ class UsersController {
         message: "The account already exists.",
       });
 
-    USERS_BBDD.push({
-      guid,
+    const newUser = new userModel({
+      _id: guid,
       name,
     });
 
-    console.log(USERS_BBDD);
+    await newUser.save();
 
     return res.status(201).json({
       OK: true,
@@ -60,7 +60,7 @@ class UsersController {
    * @param {import("express").Response} res express response object
    * @returns {object} success message | Not found
    */
-  static update(req, res) {
+  static async update(req, res) {
     const { guid } = req.params;
 
     const { name } = req.body;
@@ -70,7 +70,7 @@ class UsersController {
         message: "Name is required",
       });
 
-    const userFound = USERS_BBDD.find((user) => user.guid === guid)[0];
+    const userFound = await userModel.findById(guid).exec();
 
     if (!userFound)
       return res.status(404).json({
@@ -78,6 +78,8 @@ class UsersController {
       });
 
     userFound.name = name;
+
+    await userFound.save();
 
     res.status(200).json({
       OK: true,
@@ -91,18 +93,14 @@ class UsersController {
    * @param {import("express").Response} res express response object
    * @returns {object} success message | Not found
    */
-  static remove(req, res) {
+  static async remove(req, res) {
     const { guid } = req.params;
-    const userIndexFound = USERS_BBDD.findIndex(
-      (user) => user.guid === guid
-    )[0];
+    const userToDelete = await userModel.findOneAndDelete(guid);
 
-    if (userIndexFound === -1)
+    if (!userToDelete)
       return res.status(404).json({
         message: "Not Found",
       });
-
-    USERS_BBDD.splice(userIndexFound, 1);
 
     res.status(200).json({
       OK: true,

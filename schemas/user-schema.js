@@ -1,10 +1,10 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema({
   _id: String,
   name: String,
-})
+});
 
-const userModel = mongoose.model("User", userSchema)
+const userModel = mongoose.model("User", userSchema);
 
-export default userModel
+export default userModel;
